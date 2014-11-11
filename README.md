@@ -1,12 +1,9 @@
 SelectionHapStats README
-=================
+========================
 
 Nandita Garud
-
 ngarud@stanford.edu
-
 November 2014
-
 Petrov Lab, Stanford University
 
 This script calculates haplotype homozygosity statistics H12 and H2/H1 from population genomic data (see Introduction below for a detailed description). Further description of H12 and H2/H1 and its application to Drosophila melanogaster population genomic data can be found in the arXived paper: Recent selective sweeps in North American Drosophila melanogaster show signatures of soft sweeps (http://arxiv.org/abs/1303.0906). 
