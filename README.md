@@ -2,7 +2,6 @@ SelectionHapStats README
 ========================
 
 Nandita Garud
-ngarud@stanford.edu
 November 2014
 Petrov Lab, Stanford University
 
