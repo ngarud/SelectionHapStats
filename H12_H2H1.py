@@ -15,6 +15,7 @@ import time
 ######################
 
 def clusterSingleWindow(inFile, outFile, windowTot, distanceThreshold, numStrains, singleWindow):
+# This definiton calculates H12, H2, and H1 in a single window centered around the coordinate specified by the user. If the coordinate is not in the file or within the bounds of a defineable window, then an error message is outputted.  
 
     # Count the number of lines in a file
     countLines =  open(inFile)
@@ -28,7 +29,7 @@ def clusterSingleWindow(inFile, outFile, windowTot, distanceThreshold, numStrain
         coord=int(linecache.getline(inFile,lineNo).split(',')[0].strip('\n'))
         if coord == singleWindow:
             center=lineNo
-    if center!=-1:
+    if center!=-1: # this means that the center has not be found
         flies = initialize(window, center, inFile)
         runAllDefs(flies, center, distanceThreshold, inFile, outFile, window)
 
@@ -37,6 +38,7 @@ def clusterSingleWindow(inFile, outFile, windowTot, distanceThreshold, numStrain
 
 ######################
 def clusterHaplotypes(inFile, outFile, windowTot, jump, distanceThreshold, numStrains):
+    # This definition iterates through the entire chromosome and calculates H12, H2, and H1 to each analysis window. First, we initialize the first analysis window. Since we cannot read in the entire chromosome into memory, we keep updating the 'flies' variable with data for the next analysis window by reading genomic data directly from the inFile. 
     
     # Count the number of lines in a file
     countLines =  open(inFile)
@@ -80,6 +82,7 @@ def clusterHaplotypes(inFile, outFile, windowTot, jump, distanceThreshold, numSt
 
 #######################
 def runAllDefs(flies, center, distanceThreshold, inFile, outFile, window):
+# This definition runs all other definitions to identify haplotypes, their clusters, and summary statistics. This is run for every analysis window. 
 
         # Count the haplotypes
         haps = countHaps(flies)
@@ -111,6 +114,7 @@ def runAllDefs(flies, center, distanceThreshold, inFile, outFile, window):
 
 #######################
 def initialize(window, center, inFile):
+# This definition intializes the flies dictionary. Flies takes in the strain number as the key and the haplotype as the value. The flies vector is populated with SNPs read directly from the inFile, using center as a marker as to which SNPs to read in. 
 
     flies = {}
     for i in range(1,numStrains+1):
@@ -133,6 +137,7 @@ def initialize(window, center, inFile):
 #######################
         
 def countHaps(flies):
+# In this definition, I will collapse all unique haplotypes into single instances in the haps dictionary (the key) and use a value to indicate the number of individuals with this haplotype. 
 
         # dictionary to store all haplotypes (to count max)
         haps = {}
@@ -147,7 +152,9 @@ def countHaps(flies):
 
 def clusterDiffs(haps, distanceThreshold):
 
-   # In this definition I will cluster haplotypes that differ by some min threshold. Treat all non ATGC nucleotides as an "N" and assign a difference of 0. 
+   # In this definition I will cluster haplotypes that differ by some min threshold. If a haplotype matches another haplotype at all positions except for sites where there are Ns (missing data), then the haplotypes will be combined and the 'distance' between the two haplotypes will be considered 0. Only ATGC differnces between haplotypes will count towards the distance threshold. 
+
+   
     distanceThreshold = int(distanceThreshold)
     haps_clumped = {} # stored all the clumped haplotypes in this hash. I will pass this into def findClusters later on. 
     haps_clumped_count = {} # I would like to record the number of different unique haplotypes that are clumped -- will htis help me later to distinguish ancestral haplotypes?
@@ -187,6 +194,8 @@ def clusterDiffs(haps, distanceThreshold):
 ##################
 
 def findClusters(haps):
+# This definition identifies haplotypes present in the sample in at least 2 individuals.
+
         n_min1=2
         n_min2=2
         # find the top clusters comprised of at least n_min members 
@@ -209,6 +218,9 @@ def findClusters(haps):
         return clusters
 ####################
 def sortClusters(clusters, haps):
+# this definition sorts haplotype clusters in reverse order from largest to smallest. This sorting will help in the computation of haplotype homozygosity statistics H12, H2, and H1. 
+
+    
         # First order the keys for each cluster from largest to smallest:
         # Put everything in vectors that I can sort
 
@@ -218,7 +230,7 @@ def sortClusters(clusters, haps):
             keyVector.append(key)
             sizeVector.append(len(haps[key]))
 
-        # now sort using bubble sort:
+        # now sort using bubble sort (need to sort in place):
         swapped = True
         while swapped == True:
             swapped = False
@@ -237,6 +249,8 @@ def sortClusters(clusters, haps):
 
 ######################
 def printClusters(inFile, outFile, centerCoord, clusters, haps,  keyVector, sizeVector, absLengthWin, edgeCoord1, edgeCoord2):
+
+# this definition calculates several summary statistics from the haplotypes including K (number of unique haplotypes) and haplotype homogygosity statistics H12, H1, and H2. The outputting of all summary statistics and relevant information about the analysis window is done in this definition as well. 
 
         clusterSize = ''
         membersOfClusters =  ''
@@ -304,28 +318,11 @@ def printClusters(inFile, outFile, centerCoord, clusters, haps,  keyVector, size
         outFile.write(centerCoord + '\t' + edgeCoord1 + '\t' + edgeCoord2  + '\t' + str(K) +  '\t' + clusterSize + '\t' +  membersOfClusters + '\t' + str(H1) + '\t' + str(H2) + '\t'  + str(H12) + '\t' + str(ratioH2H1)  +  '\n')
 
 
-
         
-#############################
-def hamming_distance(s1, s2):
-    distance = 0
-    assert len(s1) == len(s2)
-    dist = sum(ch1 != ch2 for ch1, ch2 in zip(s1, s2))
-    
-    if dist == 0:
-        return distance
-        
-    else:
-        #iterate through s1 and s2 letter by letter and compare. Count Ns as 0 diff.
-        for i in range(len(s1)):
-            if s1[i] != s2[i] and (s1[i] == 'A' or s1[i] == 'T' or s1[i] == 'C'  or s1[i]=='G') and (s2[i] == 'A' or s2[i] == 'T' or s2[i] == 'C'  or s2[i]=='G'):
-                distance += 1
-
-        return distance
-
 
 #############################
 def hamming_distance_clump(s1, s2, distanceThreshold):
+    # this definition combines haplotypes that differ by some hamming distance (distanceThreshold as defined by the use) into a single haplotype. This is a useful feature to use if your data has a lot of sequencing errors, which may artificially inflate the number of unique haplotypes in a sample. Note that a single haplotype comprised of the union of the two haplotypes will be returned, where the ith index is replaced with the nucleotide belonging to the second haplotype being compared. 
 
         distance = 0
         for i in range(len(s1)):
@@ -363,7 +360,7 @@ def mkOptionParser():
 
     return parser
 
-
+########################################################################
 
 def main():
     """ see usage in mkOptionParser. """
