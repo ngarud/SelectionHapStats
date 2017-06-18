@@ -11,6 +11,8 @@ import csv
 import linecache
 import random
 import time
+import numpy
+#import Bio
 
 ######################
 
@@ -72,12 +74,12 @@ def clusterHaplotypes(inFile, outFile, windowTot, jump, distanceThreshold, numSt
             # Add SNPs to the right
             for i in range(0,jump):
                 for j in range(1,numStrains+1):
-                    flies[j].append(linecache.getline(inFile,center + window-jump +i).split(',')[j].strip())
+                    flies[j].append(linecache.getline(inFile,center + window +i).split(',')[j].strip())
 
         else:
             # need to fix this -- will fail because the edge cases have not been taken care of.
             flies = initialize(window, center, inFile)
-            
+
         runAllDefs(flies, center, distanceThreshold, inFile, outFile, window)
 
 #######################

@@ -8,13 +8,13 @@
 #! /path/to/Rscript --vanilla --default-packages=utils
 args = commandArgs(TRUE)
 analysisWindow = read.table(args[1])
-genomicData = read.table(args[2],sep=",")
+genomicData = read.table(args[2],sep=",",colClasses = "character")
 outFile = args[3]
 windowSize = as.numeric(args[4])
 sampleSize = as.numeric(args[5])
 
 # give each individual's haplotype data an ID ranging from 1 to the sampleSize
-names(genomicData)<-c("SNPloc",paste("Strain", 1:sampleSize, sep=""))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+names(genomicData)<-c("SNPloc",paste("Strain", 1:sampleSize, sep=""))
 
 # idenfity the center SNP of the analysis window as well as the 1st and last SNPs. 
 centerSNP = analysisWindow[1,1]
@@ -92,48 +92,53 @@ ZeroOneHaplotypes=as.matrix(haplotypes)
 for (i in 1:length(haplotypes[,1])){
 	for (j in 1:length(haplotypes[1,])){
 		if (haplotypes[i,j]=="N"){ZeroOneHaplotypes[i,j]=0} # indicate missing data with a 0
-			else {if (haplotypes[i,j]==haplotypes[StrainWMostCommonHaplo,j])														{ZeroOneHaplotypes[i,j]=2} # indicate a match with the reference haplotype with a 2
-			else {ZeroOneHaplotypes[i,j]=1}} # indicate a mismatch with the reference haplotype with a 1
-			
-			}}
+                       
+			else {
+                              if (haplotypes[i,j]==".")
+                                  {ZeroOneHaplotypes[i,j]=8} # indicates heterozygote
+                              else {
+                                      if (haplotypes[i,j]==haplotypes[StrainWMostCommonHaplo,j])						{ZeroOneHaplotypes[i,j]=2} # indicate a match with the reference haplotype with a 2
+                                      else {ZeroOneHaplotypes[i,j]=1}
+                                  } # indicate a mismatch with the reference haplotype with a 1
+                        } 
+                              
+	}
+}
 	
 	
 ClusterOrder<-unique(haplotypes$Cluster[sort(haplotypes$Cluster,index.return=TRUE, decreasing=TRUE)$ix])
 NumStrainsClusterOrder=NumStrainsCluster[ClusterOrder]
 StrainClusterOrder<-vector()
 for (clu in ClusterOrder){StrainClusterOrder<-c(StrainClusterOrder,which(haplotypes$Cluster==clu))}
-
 cols=col=c(8,9,rainbow(6),"blue","darkorange","purple","pink","darkgreen",5,6)
 
 
 
 
 ####
-###MAKE PLOT WITH GENOTYPES (AND LATER LOCATIONS)
+#MAKE PLOT WITH GENOTYPES (AND LATER LOCATIONS)
 ####
-#if (FALSE){
-	wl=0; wr=50;
-	cols=col=c(8,9,rainbow(6),"blue","darkorange","purple","pink","darkgreen",5,6)
+wl=0; wr=50;
+cols=col=c(8,9,rainbow(6),"blue","darkorange","purple","pink","darkgreen",5,6)
 #make a figure
-	cexpos=1
+cexpos=1
 #open a pdf file to make a figure
-	widthpng=700; 
-	heightpng=1000; 	
-	pdf(outFile,width=5,height=7)
-	par(mar=c(1,1,3,1))
+widthpng=700; 
+heightpng=1000; 	
+pdf(outFile,width=5,height=7)
+par(mar=c(1,1,3,1))
 #make empty plot
-	plot(1:2,1:2,col="white",ylim=c(-10.3,sampleSize),xlim=c(-3,windowSize),ylab="",xlab="",yaxt="n",xaxt="n",frame.plot=FALSE)
-	title(main=paste(centerSNP),cex.main = 1.8)	
-	
+plot(1:2,1:2,col="white",ylim=c(-10.3,sampleSize),xlim=c(-3,windowSize),ylab="",xlab="",yaxt="n",xaxt="n",frame.plot=FALSE)
+title(main=paste(centerSNP),cex.main = 1.8)	
 #start with most common haplotype at bottom
-	h=0
-	for (i in StrainClusterOrder){	
-		height=c(h-0.35,h+0.35)
-		for (j in 1:windowSize){
-			rect(j-1,height[1],j,height[2],density=-1,col=as.numeric(ZeroOneHaplotypes[i,j]),lwd=0., border=NA)	
-		}
-		h=h+1} 
-		
+h=0
+for (i in StrainClusterOrder){	
+    height=c(h-0.35,h+0.35)
+    for (j in 1:windowSize){
+        rect(j-1,height[1],j,height[2],density=-1,col=as.numeric(ZeroOneHaplotypes[i,j]),lwd=0., border=NA)	
+    }
+    h=h+1} 
+
 #indicate where clusters are 	
 #put line for region
 	h=0
@@ -144,6 +149,4 @@ cols=col=c(8,9,rainbow(6),"blue","darkorange","purple","pink","darkgreen",5,6)
 		text(-15,h+0.5*i-0.5,ClusterOrder[k],cex=0.25)
 		h=h+i
 	}
-	
 	dev.off()
-
