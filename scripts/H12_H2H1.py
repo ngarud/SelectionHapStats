@@ -64,7 +64,6 @@ def clusterHaplotypes(inFile, outFile, windowTot, jump, distanceThreshold, numSt
     ####### now iterate through the rest of the genome and fill only the part of the list that needs to be filled ########
 
     for center in range(window+1+jump, lastSNP, jump):
-
         if 2*window +1 >= jump: 
 
             # remove SNPs from the left
@@ -73,9 +72,10 @@ def clusterHaplotypes(inFile, outFile, windowTot, jump, distanceThreshold, numSt
 
             # Add SNPs to the right
             for i in range(0,jump):
+                current_line_info = linecache.getline(inFile, center + window + i - jump + 1).split(',')
                 for j in range(1,numStrains+1):
-                    flies[j].append(linecache.getline(inFile,center + window +i).split(',')[j].strip())
-
+                    flies[j].append(current_line_info[j].strip())
+                    
         else:
             # need to fix this -- will fail because the edge cases have not been taken care of.
             flies = initialize(window, center, inFile)
