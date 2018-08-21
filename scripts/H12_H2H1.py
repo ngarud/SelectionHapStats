@@ -273,9 +273,11 @@ def printClusters(inFile, outFile, centerCoord, clusters, haps,  keyVector, size
         H1 =0
         H2 =0
         H12 = 0
+        H123 =0
         ratioH2H1 =0
 
         H1_vector = []
+        
         for y in range(0,len(sizeVector)):
             H1 +=  (float(sizeVector[y])/float(numStrains))**2
             H1_vector.append((float(sizeVector[y])/float(numStrains))**2) 
@@ -299,11 +301,23 @@ def printClusters(inFile, outFile, centerCoord, clusters, haps,  keyVector, size
             H12 = (2/float(numStrains))**2 -2*(1/float(numStrains))**2
 
         if len(sizeVector) >2:
+            # finish computing H12
             for y in range(2,len(sizeVector)):
                 H12 += (float(sizeVector[y])/float(numStrains))**2
+            # compute H123:
+            H123 = ((float(sizeVector[0])+float(sizeVector[1])+float(sizeVector[2]))/float(numStrains))**2
+        
         # add on the singletons:
         H12+= (float(numStrains)-sum(sizeVector))*(1/float(numStrains))**2
 
+        if len(sizeVector) >3:
+            # finish computing H123:
+            for y in range(3,len(sizeVector)):
+                H123 += (float(sizeVector[y])/float(numStrains))**2
+
+        # add on the singletons
+        H123+=(float(numStrains)-sum(sizeVector))*(1/float(numStrains))**2
+        
         if H1 > 0:
             ratioH2H1 = float(H2)/float(H1)
 
@@ -317,7 +331,7 @@ def printClusters(inFile, outFile, centerCoord, clusters, haps,  keyVector, size
         K = len(sizeVector) + numStrains - sum(sizeVector)
         
 
-        outFile.write(centerCoord + '\t' + edgeCoord1 + '\t' + edgeCoord2  + '\t' + str(K) +  '\t' + clusterSize + '\t' +  membersOfClusters + '\t' + str(H1) + '\t' + str(H2) + '\t'  + str(H12) + '\t' + str(ratioH2H1)  +  '\n')
+        outFile.write(centerCoord + '\t' + edgeCoord1 + '\t' + edgeCoord2  + '\t' + str(K) +  '\t' + clusterSize + '\t' +  membersOfClusters + '\t' + str(H1) + '\t' + str(H2) + '\t'  + str(H12) + '\t' + str(ratioH2H1) + '\t' + str(H123) +  '\n')
 
 
         
